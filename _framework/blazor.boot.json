@@ -49,9 +49,9 @@
       "System.Text.RegularExpressions.dll": "sha256-q6eBez4iuSHZAWQ\/M7Bc3EvJXp0LUaU1JtdZxTt7Ric=",
       "System.Threading.dll": "sha256-vyZ9fnt8pt6xfkk5hmSC1oYuwPPakO9sjMgU0FXOjLY=",
       "System.Threading.Tasks.Extensions.dll": "sha256-eSXEfmK2ytMypiVIsQNC\/hAyW7AzKVeOoK3iB0OuQUI=",
-      "TaskTracker.Blazor.dll": "sha256-jsUeczE5BNS97jhEhs5cmEE+1eT44ZwywMqNYMakb\/M=",
-      "TaskTracker.Blazor.WASM.dll": "sha256-D31O9HTxDCoY9zPsun8RBg2F+hoz4mZoZkp4qAsXP3Q=",
-      "TaskTracker.dll": "sha256-d2Nes1Blc9d8qiZwPFJVpHelnT2U016BHTCrJeFZvVs=",
+      "TaskTracker.Blazor.dll": "sha256-5MtpVm8XXjJy+rtxGReLz+polR9S9G5acYUxflJJH8U=",
+      "TaskTracker.Blazor.WASM.dll": "sha256-\/eAOw9aTP6MNUMbS2jpHe6wVSvspT8JdlmCCep7Y3YY=",
+      "TaskTracker.dll": "sha256-GuS8Td94TXtAwRXT0qbrqQNq0CPrDM9z9Vok+ZGG+pg=",
       "TG.Blazor.IndexedDB.dll": "sha256-PXwHYNKn8m1bIIAm4lMpQfVsy35UuzEGnohqzmrkyHs="
     },
     "extensions": null,
