@@ -87,6 +87,10 @@ html {
   transform: translate(-50%,-50%);
 }
 
+.row-selected {
+  background-color: #cdd2d7 !important;
+}
+
 #blazor-error-ui {
   background: lightyellow;
   bottom: 0;
