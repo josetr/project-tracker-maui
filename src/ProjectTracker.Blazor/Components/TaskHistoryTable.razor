@@ -1,0 +1,31 @@
+@inject Store _store;
+
+<MudTable Items="History" Breakpoint="Breakpoint.None" Class="p-0" Context="entry">
+    <HeaderContent>
+        <MudTh></MudTh>
+        <MudTh><MudTableSortLabel SortBy="((TaskTimeEntry x) => x.ElapsedSeconds)">Duration</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="((TaskTimeEntry x) => x.StartDate)">Date</MudTableSortLabel></MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd></MudTd>
+        <MudTd>@string.Format("{0:hh\\:mm\\:ss}", (entry.StopDate - entry.StartDate))</MudTd>
+        <MudTd>@(entry.StartDate)</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteEntryAsync(entry.Id)" style="color: red" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter]
+    public List<TaskTimeEntry> History { get; set; } = new();
+
+    public async Task DeleteEntryAsync(int id)
+    {
+        await _store.DeleteTaskHistoryEntry(id);
+        var entry = History.FirstOrDefault(x => x.Id == id);
+        if (entry != null)
+            History.Remove(entry);
+    }
+}

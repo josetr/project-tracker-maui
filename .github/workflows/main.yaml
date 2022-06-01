@@ -1,0 +1,25 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: Release
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Restore
+        run: dotnet restore src/ProjectTracker.Blazor.WASM
+
+      - name: Build
+        run: dotnet publish src/ProjectTracker.Blazor.WASM -o publish --nologo --no-restore
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/draft'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./publish/wwwroot

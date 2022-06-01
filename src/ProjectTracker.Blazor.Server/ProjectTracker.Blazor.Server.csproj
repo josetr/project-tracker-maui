@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Shared\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProjectTracker.Blazor\ProjectTracker.Blazor.csproj" />
+    <ProjectReference Include="..\ProjectTracker.EF\ProjectTracker.EF.csproj" />
+  </ItemGroup>
+
+</Project>

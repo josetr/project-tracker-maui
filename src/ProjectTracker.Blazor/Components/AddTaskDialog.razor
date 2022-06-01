@@ -1,0 +1,35 @@
+@inherits Component<AddTaskDialogViewModel>;
+
+<MudDialog Class="dialog-new" @onkeydown="@HandleKeyDown">
+    <DialogContent>
+        <EditForm Model="Model" OnValidSubmit="Submit" id="form">
+            <MudTextField @bind-Value="Model.Name" Label="Name" Variant="Variant.Text" Required="true" AutoFocus="true" UserAttributes="@(new Dictionary<string, object>() {{ "autocomplete", "no" }})" />
+            <div class="flex justify-between">
+                <MudNumericField @bind-Value="Model.Hours" Label="Hours" HideSpinButtons="true" Min="0" Max="23" Style="width:85px" />
+                <MudNumericField @bind-Value="Model.Minutes" Label="Minutes" HideSpinButtons="true" Min="0" Max="60" Style="width:85px" />
+                <MudNumericField @bind-Value="Model.Seconds" Label="Seconds" HideSpinButtons="true" Min="0" Max="60" Style="width:85px" />
+            </div>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" ButtonType="ButtonType.Submit" form="form">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    public async Task Submit()
+    {
+        if (await Model.AddAsync() != null)
+            MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    public void Cancel() => MudDialog.Cancel();
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Code == "Escape")
+            Cancel();
+    }
+}

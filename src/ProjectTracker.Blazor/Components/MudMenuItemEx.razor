@@ -1,0 +1,16 @@
+<MudListItem OnClick="OnClickHandler">
+    @ChildContent
+</MudListItem>
+
+@code {
+    [CascadingParameter] public MudMenu MudMenu { get; set; } = default!;
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+
+    protected async Task OnClickHandler(MouseEventArgs ev)
+    {
+        MudMenu.CloseMenu();
+
+        await OnClick.InvokeAsync(ev);
+    }
+}

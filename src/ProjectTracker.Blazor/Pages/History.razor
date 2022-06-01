@@ -1,0 +1,45 @@
+@page "/history"
+@inherits Component<ViewModels.HistoryPageViewModel>;
+
+<Layout ShowDrawer="false" Title="History">
+    <Header>
+        <MudIconButton Icon="@Icons.Material.Filled.Home" OnClick="Model.NavigateToHomeComponent" Style="color:white" />
+    </Header>
+
+    <ChildContent>
+        <MudTextField @bind-Value="Model.SearchText" Placeholder="Filter by name" Variant="Variant.Text"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      AdornmentColor="Color.Primary"
+                      Immediate="true"
+                      Style="margin: 15px 0 25px 0" />
+
+        <MudTable Items="Model.TimeEntries" Breakpoint="Breakpoint.None" Filter="@(c => c.Name.ToLower().Contains(Model.SearchText.ToLower()))"
+                  RowsPerPage="100"
+                  Dense="true"
+                  Context="entry">
+            <NoRecordsContent>
+                History list is empty.
+            </NoRecordsContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="((TaskTimeEntry x) => x.Id)">Id</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="((TaskTimeEntry x) => x.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="((TaskTimeEntry x) => x.StartDate)">Date</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="((TaskTimeEntry x) => x.ElapsedSeconds)">Duration</MudTableSortLabel></MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="padding: 0 16px">@entry.Id</MudTd>
+                <MudTd Style="padding: 0 16px"><MudHighlighter Text="@entry.Name" HighlightedText="@Model.SearchText" /></MudTd>
+                <MudTd Style="padding: 0 16px">@(entry.StartDate)</MudTd>
+                <MudTd Style="padding: 0 16px">@string.Format("{0:hh\\:mm\\:ss}", (entry.StopDate - entry.StartDate))</MudTd>
+                <MudTd Style="padding: 0 16px">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => Model.DeleteEntryAsync(entry.Id)" style="color:red" />
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </ChildContent>
+</Layout>

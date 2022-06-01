@@ -1,0 +1,117 @@
+@using Microsoft.AspNetCore.Components.Routing
+@inherits Component<LayoutViewModel>
+
+<MudLayout>
+    <div class="h-full flex flex-column" @onkeydown="OnLayoutKeyDown" tabindex="0">
+        <MudAppBar Elevation="1" Dense="true">
+            @if (ShowDrawer)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="Model.ToggleDrawer" />
+            }
+            @Title
+            <MudSpacer />
+            <MudTooltip Text="GitHub Repository">
+                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/josetr/project-tracker-maui/tree/draft" />
+            </MudTooltip>
+            @Header
+        </MudAppBar>
+
+        @if (ShowDrawer)
+        {
+            <MudDrawer @bind-Open="@Model.IsDrawerOpen" Elevation="1" tabindex="0" @onkeydown="OnDrawerKeyDown">
+                <MudDrawerHeader>
+                    <div class="flex justify-between align-center w-full">
+                        <MudText Typo="Typo.body1" Style="vertical-align:bottom">Projects</MudText>
+                        <MudTooltip Text="Create project">
+                              <MudFab StartIcon="@Icons.Material.Filled.Add" OnClick="Model.OpenCreateProjectDialog" Size="Size.Small" />
+                        </MudTooltip>
+                    </div>
+                </MudDrawerHeader>
+                <MudNavMenu>
+                    @foreach (var project in Model.Projects)
+                    {
+                        <div class="nav-item flex justify-between">
+                            <MudButton OnClick="@(() => Model.SelectProject(project))" Class="text-left" FullWidth="true">
+                                <span style=@(project.Id == Model.SelectedProjectId ? "border-bottom: 1px solid var(--mud-palette-primary);" : "")>
+                                    @project.Id
+                                </span>
+                            </MudButton>
+                            <div class="edit-btn">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" IconColor="Color.Primary">
+                                    <MudMenuItemEx OnClick="@(() => Model.OpenEditProjectDialog(project.Id))">
+                                        Edit
+                                    </MudMenuItemEx>
+                                    <MudMenuItemEx OnClick="@(() => Model.OpenRemoveProjectDialog(project.Id))">
+                                        Remove
+                                    </MudMenuItemEx>
+                                </MudMenu>
+
+                            </div>
+                        </div>
+                    }
+                </MudNavMenu>
+            </MudDrawer>
+        }
+
+        @if (Model.IsInitialized)
+        {
+            <MudMainContent class="flex-1">
+                <MudContainer Class="h-full relative">
+                    @if (!Model.Projects.Any())
+                    {
+                        <div class="text-center w-full" style="margin-top: 20px">
+                            <h2 style="margin: 10px;">You have no projects.</h2>
+                            <div><MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Model.OpenCreateProjectDialog" Class="align-bottom">Create project</MudButton></div>
+                            <img src="_content/ProjectTracker.Blazor/Project-Management.svg" style="width: 50%; height: 50%" />
+                        </div>
+                    }
+                    else
+                    {
+                        @ChildContent
+                    }
+                </MudContainer>
+            </MudMainContent>
+        }
+
+        <footer class="text-center p-4">
+            Copyright (©) 2022 Jose Torres
+        </footer>
+    </div>
+</MudLayout>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Project Tasks";
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter]
+    public RenderFragment Header { get; set; } = default!;
+    [Parameter]
+    public bool ShowDrawer { get; set; } = true;
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+
+    private async void OnLayoutKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey && e.AltKey && e.Key.ToLower() == "p")
+        {
+            await Model.OpenCreateProjectDialog();
+        }
+        else if (OnKeyDown.HasDelegate)
+        {
+            await OnKeyDown.InvokeAsync(e);
+        }
+    }
+
+    private void OnDrawerKeyDown(KeyboardEventArgs e)
+    {
+        if (!e.CtrlKey || !e.AltKey)
+            return;
+
+        if (e.Key == "ArrowUp")
+            Model.SelectProject(-1);
+        else if (e.Key == "ArrowDown")
+            Model.SelectProject(1);
+    }
+}

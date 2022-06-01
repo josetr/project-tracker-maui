@@ -1,0 +1,148 @@
+@page "/"
+@inherits Component<ViewModels.IndexPageViewModel>;
+@using ProjectTracker.Blazor.Components;
+@using ProjectTracker.ViewModels;
+@using ProjectTracker.Models;
+
+<Layout Title="@Title" OnKeyDown="HandleKeyDown" @ref="layoutRef">
+    <Header>
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" IconColor="Color.Primary" Class="btn-white">
+            <MudMenuItemEx OnClick="Model.NavigateToHistoryComponent">
+                History
+            </MudMenuItemEx>
+        </MudMenu>
+    </Header>
+
+    <ChildContent>
+        <div style="display: flex; justify-content: space-between; align-items:flex-end; margin-bottom: 22px">
+            <MudTextField @bind-Value="Model.SearchText" Placeholder="Filter by name" Variant="Variant.Text"
+                          @ref="searchFieldRef"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="true" />
+      
+            <div style="width: 90px; margin: 0 8px;" tabindex="0">
+                <MudSelect T="TimePeriod" AnchorOrigin="Origin.BottomCenter" ValueChanged="@Model.TimePeriodChanged" Value="Model.TimePeriod">
+                    <MudSelectItem Value="TimePeriod.Day">Today</MudSelectItem>
+                    <MudSelectItem Value="TimePeriod.Month">Month</MudSelectItem>
+                    <MudSelectItem Value="TimePeriod.Year">Year</MudSelectItem>
+                    <MudSelectItem Value="TimePeriod.All">All time</MudSelectItem>
+                </MudSelect>
+            </div>
+
+            <div class="md:hidden align-bottom">
+                <MudFab StartIcon="@Icons.Material.Filled.Add" OnClick="Model.OpenCreateTaskDialog" Size="Size.Small" Color="Color.Primary" />
+            </div>
+
+            <div class="hidden md:block">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Model.OpenCreateTaskDialog" Class="align-bottom">Create task</MudButton>
+            </div>
+        </div>
+        @if (Model.Initialized && !Model.Tasks.Any())
+        {
+            <h2 class="text-center" style="margin-bottom: 15px">There are no tasks.</h2>
+        }
+        <MudTable T="ProjectTaskViewModel" Items="Model.FilteredTasks" Filter="Model.Filter" Breakpoint="Breakpoint.None" Bordered="false" Style="border-top: 1px solid rgba(0,0,0,0.2)" Dense="true"
+                  OnRowClick="@((MudBlazor.TableRowClickEventArgs<ProjectTaskViewModel> e) => Model.SelectTask(e.Item))"
+                  Context="task"
+                  Hover="true"
+                  RowClassFunc="@SelectedRowClassFunc">
+            <RowTemplate>
+                <MudTd Class="p-0">
+                    <div style="width: 80px">
+                        <MudIconButton Icon="@GetRowExpandIcon(task)" OnClick="@(() => Model.Expand(task))" Title="Expand" />
+                        <MudCheckBox CheckedChanged="@((bool value) => Model.CompleteTaskAsync(task.Id, value))" Checked="@task.IsCompleted" />
+                    </div>
+                </MudTd>
+                <MudTd Class="p-0" Style="word-break: break-word">
+                    <MudHighlighter Text="@task.Name" HighlightedText="@Model.SearchText" />
+                    @if (task.ElapsedTime.TotalMilliseconds > 0 || HasTimeRemaining(task))
+                    {
+                        <div style="font-size: 11.5px; margin-top: 5px;">
+                            @if (HasTimeRemaining(task))
+                            {
+                                <div>Remaining: @TimeUtil.FormatElapsedTime(task.Duration - task.RunElapsedTime)</div>
+                            }
+                            @if (task.ElapsedTime.TotalMilliseconds > 0)
+                            {
+                                <div style="margin-top: 5px">
+                                    Elapsed: @TimeUtil.FormatElapsedTime(task.ElapsedTime)
+                                </div>
+                            }
+                        </div>
+                    }
+                </MudTd>
+                <MudTd Class="text-right p-0">
+                    <div class="flex justify-end">
+                        <div class="md:hidden align-middle" style="min-width: 100px">
+                            <MudIconButton Icon="@GetRowPlayIcon(task)" OnClick="() => Model.StartOrStop(task.Id)" Color="Color.Primary" Title="Start" />
+                            <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Class="align-bottom">
+                                <MudMenuItemEx OnClick="() => Model.OpenTaskEditDialog(task.Id)">
+                                    Edit
+                                </MudMenuItemEx>
+                                <MudMenuItemEx OnClick="() => Model.OpenDeleteTaskConfirmDialog(task.Id, task.Name)">
+                                    Remove
+                                </MudMenuItemEx>
+                            </MudMenu>
+                        </div>
+
+                        <div class="hidden md:block" style="min-width: 140px;">
+                            <MudIconButton Icon="@GetRowPlayIcon(task)" OnClick="() => Model.StartOrStop(task.Id)" Color="Color.Primary" Title="Start" Style="padding: 8px" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="() => Model.OpenTaskEditDialog(task.Id)" Color="Color.Primary" Title="Edit" Style="padding: 8px" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => Model.OpenDeleteTaskConfirmDialog(task.Id, task.Name)" Style="padding: 8px; color:red;" Title="Delete" />
+                        </div>
+                    </div>
+                </MudTd>
+            </RowTemplate>
+            <ChildRowContent>
+                @if (task.IsExpanded)
+                {
+                    <MudTd colspan="4" Class="p-0">
+                        @if (task.History.Count == 0)
+                        {
+                            <div class="text-center" style="padding: 20px">Task history list is empty.</div>
+                        }
+                        else
+                        {
+                            <TaskHistoryTable History="@task.History"></TaskHistoryTable>
+                        }
+                    </MudTd>
+                }
+            </ChildRowContent>
+
+        </MudTable>
+
+    </ChildContent>
+</Layout>
+
+@code {
+    private Layout? layoutRef;
+    private MudTextField<string>? searchFieldRef;
+
+    private string Title => string.IsNullOrWhiteSpace(Model.ProjectId) ? "Project Tracker" : $"{Model.ProjectId} tasks";
+
+    private async void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey && e.AltKey && e.Key.ToLower() == "f" && searchFieldRef != null)
+            await searchFieldRef.FocusAsync();
+        else
+            await Model.HandleKeyDown(e);
+    }
+
+    private string SelectedRowClassFunc(ProjectTaskViewModel element, int rowNumber)
+    {
+        if (Model.SelectedTask != null && Model.SelectedTask.Equals(element))
+            return "row-selected";
+        else
+            return string.Empty;
+    }
+
+    private string GetRowExpandIcon(ProjectTaskViewModel task) =>
+      !task.IsExpanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ExpandLess;
+
+    private string GetRowPlayIcon(ProjectTaskViewModel task) =>
+      Model.RunningTask != task ? Icons.Material.Filled.PlayCircleOutline : Icons.Material.Outlined.StopCircle;
+
+    private bool HasTimeRemaining(ProjectTaskViewModel task) =>
+      task.Duration != TimeSpan.FromSeconds(0) && task.RunElapsedTime < task.Duration;
+}

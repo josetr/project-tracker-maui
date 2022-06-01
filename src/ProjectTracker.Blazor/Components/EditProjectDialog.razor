@@ -1,0 +1,39 @@
+@inherits Component<EditProjectDialogViewModel>;
+
+<MudDialog Class="dialog-new" onkeydown="@HandleKeyDown">
+    <DialogContent>
+        <EditForm Model="Model" OnValidSubmit="Submit" id="form">
+            <MudTextField @bind-Value="Model.Id" Label="Name" Variant="Variant.Text" Required="true" AutoFocus="true" UserAttributes="@(new Dictionary<string, object>() {{ "autocomplete", "no" }})" />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" ButtonType="ButtonType.Submit" form="form">Edit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    protected override Task OnInitializedAsync()
+    {
+        return Model.OpenAsync(Id);
+    }
+
+    public async Task Submit()
+    {
+        if (await Model.EditAsync())
+            MudDialog.Close(DialogResult.Ok(true));
+    }
+
+
+    public void Cancel() => MudDialog.Cancel();
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Code == "Escape")
+            Cancel();
+    }
+}
